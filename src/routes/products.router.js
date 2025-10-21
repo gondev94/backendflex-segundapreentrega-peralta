@@ -52,14 +52,8 @@ productsRouter.put("/:pid", async (req, res) => {
     const pid = req.params.pid;
     const updates = req.body;
 
-    const updateProduct = await Product.findByIdAndUpdate(pid, updates, {
-      new: true,
-      runValidators: true,
-    });
-    if (!updateProduct)
-      return res
-        .status(404)
-        .json({ status: "error", message: "Producto no encontrado" });
+    const updateProduct = await Product.findByIdAndUpdate(pid, updates, { new: true, runValidators: true });
+    if (!updateProduct) return res.status(404).json({ status: "error", message: "Producto no encontrado" });
 
     res.status(200).json({ status: "success", payload: updateProduct });
   } catch (error) {
@@ -75,9 +69,7 @@ productsRouter.delete("/:pid", async (req, res) => {
 
     const deletedProduct = await Product.findByIdAndDelete(pid);
     if (!deletedProduct)
-      return res
-        .status(404)
-        .json({ status: "error", message: "Producto no encontrado" });
+      return res.status(404).json({ status: "error", message: "Producto no encontrado" });
     res.status(200).json({ status: "success", payload: deletedProduct });
   } catch (error) {
     res

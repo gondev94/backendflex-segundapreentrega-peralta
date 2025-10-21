@@ -1,27 +1,19 @@
 import express from "express"; // 1 importamos express desde la libreria
-import mongoose from "mongoose";
 import { engine } from "express-handlebars"; // 2 importamos el motor de plantillas
 import viewsRouter from "./routes/views.router.js";
 import productsRouter from "./routes/products.router.js";
+import connectMongodb from "./config/db.js";
 import http from "http";
 import { Server } from "socket.io";
 import ProductManager from "./productManager.js";
 
 const app = express(); // 3creamos variable para contener la funcionalidad de expresss para poder levantar nuestro servidor
 app.use(express.json());
+connectMongodb();
 const server = http.createServer(app);
 const PORT = 8085;
 
-const connectMongodb = async () => {
-  try {
-    await mongoose.connect(
-      "mongodb+srv://gondev:gondevpass@ecommerce.aiokya5.mongodb.net/myEcommerce?retryWrites=true&w=majority&appName=Ecommerce"
-    );
-    console.log("Conectado a MongoDB");
-  } catch (error) {
-    console.log("Error al conectar con MongodB", error);
-  }
-};
+
 
 const io = new Server(server);
 
@@ -61,7 +53,7 @@ io.on("connection", (socket) => {
   });
 });
 
-connectMongodb();
+
 server.listen(PORT, () => {
   console.log("Servidor escuchando en el puerto 8085");
 });
