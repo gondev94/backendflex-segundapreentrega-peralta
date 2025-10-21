@@ -6,12 +6,15 @@ import connectMongodb from "./config/db.js";
 import http from "http";
 import { Server } from "socket.io";
 import ProductManager from "./productManager.js";
+import dotenv from "dotenv"
 
+
+dotenv.config(); // iniciamos las variables de entorno 
 const app = express(); // 3creamos variable para contener la funcionalidad de expresss para poder levantar nuestro servidor
 app.use(express.json());
 connectMongodb();
 const server = http.createServer(app);
-const PORT = 8085;
+const PORT = process.env.PORT;
 
 
 
