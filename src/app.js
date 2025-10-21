@@ -12,6 +12,7 @@ import dotenv from "dotenv"
 dotenv.config(); // iniciamos las variables de entorno 
 const app = express(); // 3creamos variable para contener la funcionalidad de expresss para poder levantar nuestro servidor
 app.use(express.json());
+app.use(express.urlencoded({ extended: true}))
 connectMongodb();
 const server = http.createServer(app);
 const PORT = process.env.PORT;

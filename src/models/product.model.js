@@ -2,10 +2,12 @@ import mongoose from "mongoose";
 
 const productSchema = new mongoose.Schema({
   title: String,
-  description: String,
+  description: {type: String, index: "text"},
+  thumbnail: {type: String, default: ""},
+  code: {type: String, unique: true},
   price: Number,
   stock: Number,
-  thumbnail: String,
+  category: {type: String, index: true},
   status: {
     type: Boolean,
     default: true,

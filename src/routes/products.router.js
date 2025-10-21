@@ -28,13 +28,16 @@ productsRouter.get("/", async (req, res) => {
 
 productsRouter.post("/", uploader.single("file"), async (req, res) => {
   try {
-    const { title, description, price, stock, thumbnail } = req.body;
+    const { title, description,
+      thumbnail, code,  price, stock, category  } = req.body;
     const product = new Product({
       title,
       description,
+      thumbnail,
+      code,
       price,
       stock,
-      thumbnail,
+      category,
     });
     await product.save();
 
