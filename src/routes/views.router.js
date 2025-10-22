@@ -1,24 +1,48 @@
 import express from "express";
-import ProductManager from "../productManager.js";
-import CartManager from "../cartManager.js";
+import Product from "../models/product.model.js";
 
 
 const viewsRouter = express.Router();
-const productManager = new ProductManager("./src/products.json");
-const cartManager = new CartManager("./src/carts.json");
+
 
 viewsRouter.get("/", async(req, res) => {
     
-    const products = await productManager.getProducts();
+    try{
+    const {limit = 5, page = 1} = req.query;
+    const data = await Product.paginate({}, {limit, page, lean: true} );
+    const products = data.docs;
+    delete data.docs;
 
-    res.render("home", { products });
+    const links = [];
+
+    for(let index = 1; index <= data.totalPages; index ++){
+        links.push({ text: index, link: `?limit=${limit}&page=${index}` })
+    }
+
+    res.render("home", { products, links });
+    }catch(error){
+
+    }
 });
 
 viewsRouter.get("/realTimeProducts", async(req, res) => {
     
-    const products = await productManager.getProducts();
+    try{
+    const {limit = 5, page = 1} = req.query;
+    const data = await Product.paginate({}, {limit, page, lean: true} );
+    const products = data.docs;
+    delete data.docs;
 
-    res.render("realTimeProducts", { products });
+    const links = [];
+
+    for(let index = 1; index <= data.totalPages; index ++){
+        links.push({ text: index, link: `?limit=${limit}&page=${index}` })
+    }
+
+    res.render("realTimeProducts", { products, links });
+    }catch(error){
+
+    }
 });
 
 export default viewsRouter;

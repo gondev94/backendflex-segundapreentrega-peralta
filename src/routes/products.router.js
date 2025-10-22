@@ -19,8 +19,15 @@ const productManager = new ProductManager("./src/products.json");
 
 productsRouter.get("/", async (req, res) => {
   try {
-    const products = await Product.find();
-    res.status(200).json({ status: "success", payload: products });
+
+    const { limit = 5 , page = 1 } = req.query;
+
+    const data = await Product.paginate( {}, {limit, page} );
+
+    const products = data.docs;
+    delete data.docs;
+
+    res.status(200).json({ status: "success", payload: products, ...data });
   } catch (error) {
     res.status(500).json({ status: "Error", message: "Error al cuperar los productos", error });
   }

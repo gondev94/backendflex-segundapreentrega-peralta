@@ -13,6 +13,18 @@ cartRouter.post("/", async (req, res) => {
   }
 });
 
+cartRouter.get("/:cid", async(req, res) =>{
+  try {
+    const cid = req.params.cid;
+    const cart = await Cart.findById(cid);
+    if(!cart) return res.status(500).json({ status: "error", message: "carrito no encontrado"});
+
+    res.status(200).json({status: "success", payload: cart.products});
+  } catch (error) {
+    res.status(500).json({ status: "error", message: error.message});
+  }
+})
+
 cartRouter.post("/:cid/product/:pid", async(req, res)=>{
     try {
         const {cid, pid} = req.params;
@@ -20,7 +32,7 @@ cartRouter.post("/:cid/product/:pid", async(req, res)=>{
 
         const updatedCart = await Cart.findByIdAndUpdate(cid, { $push: { products: { product: pid, quantity } } }, {new: true, runValidators: true});
         res.status(200).json({ status: "success", payload: updatedCart });
-      
+
       } catch (error) {
         res.status(500).json({ status: "error", message: error.message })
     }

@@ -6,16 +6,19 @@ import connectMongodb from "./config/db.js";
 import http from "http";
 import { Server } from "socket.io";
 import ProductManager from "./productManager.js";
-import dotenv from "dotenv";
+import dotenv from "dotenv"
 import cartRouter from "./routes/carts.router.js";
 
-dotenv.config(); // iniciamos las variables de entorno
+
+dotenv.config(); // iniciamos las variables de entorno 
 const app = express(); // 3creamos variable para contener la funcionalidad de expresss para poder levantar nuestro servidor
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true}))
 connectMongodb();
 const server = http.createServer(app);
 const PORT = process.env.PORT;
+
+
 
 const io = new Server(server);
 
@@ -30,30 +33,31 @@ app.use(express.static("public")); //4indicamos la carpeta publica para los arch
 app.use("/", viewsRouter);
 app.use("/api/products", productsRouter);
 app.use("/api/carts", cartRouter);
-const products = [];
-const productManager = new ProductManager("./src/products.json");
+// const products = [];
+// const productManager = new ProductManager("./src/products.json");
 
-//websocket
+// //websocket
 
-io.on("connection", (socket) => {
-  console.log("Nuevo cliente conectado");
+// io.on("connection", (socket) => {
+//   console.log("Nuevo cliente conectado");
 
-  //emitimos un evento desde el server al cliente
-  socket.emit("mensaje", { greeting: "Bienvenido al servidor" });
+//   //emitimos un evento desde el server al cliente
+//   socket.emit("mensaje", { greeting: "Bienvenido al servidor" });
 
-  socket.on("new product", (data) => {
-    products.push(data);
+//   socket.on("new product", (data) => {
+//     products.push(data);
 
-    io.emit("productslist", data);
-  });
+//     io.emit("productslist", data);
+//   });
 
-  socket.on("deleteProduct", async (productId) => {
-    const updatedProducts = await productManager.deleteProductById(productId);
-    products.length = 0;
-    products.push(...updatedProducts);
-    io.emit("updateProducts", updatedProducts);
-  });
-});
+//   socket.on("deleteProduct", async (productId) => {
+//     const updatedProducts = await productManager.deleteProductById(productId);
+//     products.length = 0;
+//     products.push(...updatedProducts);
+//     io.emit("updateProducts", updatedProducts);
+//   });
+// });
+
 
 server.listen(PORT, () => {
   console.log("Servidor escuchando en el puerto 8085");
