@@ -1,99 +1,92 @@
 <div class="container">
-  <h1>real time products</h1>
+    <h1>real time products</h1>
 
-  <div>
-    <form
-      id="formProduct"
-      action="http://localhost:8085/api/products"
-      method="post"
-      enctype="multipart/form-data"
-      required
-    >
-      <input
-        id="productName"
-        type="text"
-        name="title"
-        placeholder="nombre del producto"
-        required
-      />
-      <input
-        id="productDescription"
-        type="text"
-        name="description"
-        placeholder="descripción del producto"
-        required
-      />
-      <input
-        id="productPrice"
-        type="number"
-        name="price"
-        placeholder="precio del producto"
-        required
-      />
-      <input
-        id="productQuantity"
-        type="number"
-        name="stock"
-        placeholder="stock del producto"
-        required
-      />
-      <input
-        id="productFile"
-        type="file"
-        name="file"
-        placeholder="url de la imagen"
-        required
-      />
-      <button type="submit">Agregar producto</button>
-    </form>
-  </div>
-  <li id="productsList">
-    {{#each products}}
-      <div>
-        <h2>{{this.title}}</h2>
-        <p>description: {{this.description}}</p>
-        <p>price : {{this.price}}€ </p>
-        <p>stock: {{this.stock}}</p>
-        <img src="{{this.thumbnail}}" alt="{{this.title}}" />
-        <button class="delete-btn">Eliminar</button>
+    <div>
+        <form id="formProduct" action="http://localhost:8085/api/products" method="post" enctype="multipart/form-data" required>
+        <input id="productName" type="text" name="title" placeholder="nombre del producto" required>
+        <input id="productDescription" type="text" name="description" placeholder="descripción del producto" required>
+        <input id="productPrice" type="number" name="price" placeholder="precio del producto" required>
+        <input id="productQuantity" type="number" name="stock" placeholder="stock del producto" required>
+        <input id="productFile" type="file" name="file" placeholder="url de la imagen" required>
+        <button type="submit">Agregar producto</button>
+        </form>
+    </div>
+    <li id="productsList">
+        {{#each products}}
+            <div data-id ="{{this._id}}">
+                <h2>{{this.title}}</h2>
+                <p>description: {{this.description}}</p>
+                <p>price : {{this.price}}€ </p>
+                <p>stock: {{this.stock}}</p>
+                <img src="{{this.thumbnail}}" alt="{{this.title}}" />
+                <button class="delete-btn">Eliminar</button>
 
-      </div>
-    {{/each}}
-  </li>
+            </div>
+        {{/each}}
+    </li>
 </div>
-<div>
-  {{#each links}}
-    <a href={{{this.link}}}>{{this.text}}</a>
-  {{/each}}
-</div>
+    <div>
+        {{#each links}}
+        <a href={{{this.link}}}>{{this.text}}</a>
+        {{/each}}
+    </div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
-  const socket = io(); const main = () => { //formulario para agregar productos
-  const formProduct = document.getElementById("formProduct"); const productName
-  = document.getElementById("productName"); const productDescription =
-  document.getElementById("productDescription"); const productPrice =
-  document.getElementById("productPrice"); const productQuantity =
-  document.getElementById("productQuantity"); const productFile =
-  document.getElementById("productFile"); const productsList =
-  document.getElementById("productsList");
-  formProduct.addEventListener("submit", (e)=> { const newProduct = { title:
-  productName.value, description: productDescription.value, price:
-  productPrice.value, stock: productQuantity.value, thumbnail: productFile.value
-  }; socket.emit("new product", newProduct); }); //capturamos los mensajes
-  nuevos socket.on("productslist", (dataProducts)=>{ const productsList =
-  document.getElementById("productsList"); productsList.innerHTML += ` <div>
-  <h2>${dataProducts.title}</h2> <p>description: ${dataProducts.description}</p>
-  <p>price : ${dataProducts.price}€ </p> <p>stock: ${dataProducts.stock}</p>
-  <img src="${dataProducts.thumbnail}" alt="${dataProducts.title}" /> </div> `;
-  }); //capturamos historial de productos document.addEventListener("click", (e)
-  => { if (e.target.classList.contains("delete-btn")) { const card =
-  e.target.closest("div"); const productId = card.getAttribute("data-id");
-  socket.emit("deleteProduct", productId); } }); socket.on("updateProducts",
-  (products) => { const productsList = document.getElementById("productsList");
-  productsList.innerHTML = ""; products.forEach((p) => { productsList.innerHTML
-  += ` <div data-id="${p.id}"> <h2>${p.title}</h2> <p>description:
-  ${p.description}</p> <p>price : ${p.price}€ </p> <p>stock: ${p.stock}</p> <img
-  src="${p.thumbnail}" alt="${p.title}" /> <button
-  class="delete-btn">Eliminar</button> </div> `; }); }); } main()
+  const socket = io();
+
+  const main = () => {
+    const formProduct = document.getElementById("formProduct");
+    const productName = document.getElementById("productName");
+    const productDescription = document.getElementById("productDescription");
+    const productPrice = document.getElementById("productPrice");
+    const productQuantity = document.getElementById("productQuantity");
+    const productFile = document.getElementById("productFile");
+    const productsList = document.getElementById("productsList");
+
+    // 📤 Agregar producto
+    formProduct.addEventListener("submit", (e) => {
+      e.preventDefault(); // evita recargar la página
+
+      const newProduct = {
+        title: productName.value,
+        description: productDescription.value,
+        price: parseFloat(productPrice.value),
+        stock: parseInt(productQuantity.value),
+        thumbnail: `/img/${productFile.files[0]?.name || "no-image.png"}`
+      };
+
+      socket.emit("new product", newProduct);
+
+      formProduct.reset(); // limpia el formulario
+    });
+
+    // 🗑️ Eliminar producto
+    document.addEventListener("click", (e) => {
+      if (e.target.classList.contains("delete-btn")) {
+        const card = e.target.closest("div[data-id]");
+        const productId = card.getAttribute("data-id");
+        socket.emit("deleteProduct", productId);
+      }
+    });
+
+    // 🔄 Actualizar lista de productos en tiempo real
+    socket.on("updateProducts", (products) => {
+      productsList.innerHTML = "";
+      products.forEach((p) => {
+        productsList.innerHTML += `
+          <div data-id="${p._id}">
+            <h2>${p.title}</h2>
+            <p>Descripción: ${p.description}</p>
+            <p>Precio: ${p.price}€</p>
+            <p>Stock: ${p.stock}</p>
+            <img src="${p.thumbnail}" alt="${p.title}" width="120" />
+            <button class="delete-btn">Eliminar</button>
+          </div>
+        `;
+      });
+    });
+  };
+
+  main();
 </script>

@@ -5,9 +5,9 @@ import productsRouter from "./routes/products.router.js";
 import connectMongodb from "./config/db.js";
 import http from "http";
 import { Server } from "socket.io";
-import ProductManager from "./productManager.js";
 import dotenv from "dotenv"
 import cartRouter from "./routes/carts.router.js";
+import Product from "./models/product.model.js";
 
 
 dotenv.config(); // iniciamos las variables de entorno 
@@ -33,30 +33,38 @@ app.use(express.static("public")); //4indicamos la carpeta publica para los arch
 app.use("/", viewsRouter);
 app.use("/api/products", productsRouter);
 app.use("/api/carts", cartRouter);
-// const products = [];
-// const productManager = new ProductManager("./src/products.json");
 
-// //websocket
+io.on("connection", async (socket) => {
+  console.log("🟢 Nuevo cliente conectado");
 
-// io.on("connection", (socket) => {
-//   console.log("Nuevo cliente conectado");
+  // Enviar productos actuales al conectarse
+  const products = await Product.find().lean();
+  socket.emit("updateProducts", products);
 
-//   //emitimos un evento desde el server al cliente
-//   socket.emit("mensaje", { greeting: "Bienvenido al servidor" });
+  // Escuchar creación de nuevo producto desde el cliente
+  socket.on("new product", async (newProduct) => {
+    try {
+      const product = new Product(newProduct);
+      await product.save();
 
-//   socket.on("new product", (data) => {
-//     products.push(data);
+      const updatedProducts = await Product.find().lean();
+      io.emit("updateProducts", updatedProducts);
+    } catch (error) {
+      console.error("Error al agregar producto:", error.message);
+    }
+  });
 
-//     io.emit("productslist", data);
-//   });
-
-//   socket.on("deleteProduct", async (productId) => {
-//     const updatedProducts = await productManager.deleteProductById(productId);
-//     products.length = 0;
-//     products.push(...updatedProducts);
-//     io.emit("updateProducts", updatedProducts);
-//   });
-// });
+  // Escuchar eliminación de producto
+  socket.on("deleteProduct", async (productId) => {
+    try {
+      await Product.findByIdAndDelete(productId);
+      const updatedProducts = await Product.find().lean();
+      io.emit("updateProducts", updatedProducts);
+    } catch (error) {
+      console.error("Error al eliminar producto:", error.message);
+    }
+  });
+});
 
 
 server.listen(PORT, () => {
