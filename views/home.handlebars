@@ -1,22 +1,98 @@
-<div>
-    <h1>index page</h1>
-    <li>
-        {{#each products}}
-            <div>
-                <h2>{{this.title}}</h2>
-                <p>description: {{this.description}}</p>
-                <p>price : {{this.price}}€ </p>
-                <p>stock: {{this.stock}}</p>
-                <img src="{{this.thumbnail}}" alt="{{this.title}}" />
-            </div>
-        {{/each}}
-    </li>
+<!-- ✅ AGREGADA clase home-container -->
+<div class="home-container">
+  <h1>index page</h1>
 
-    <div>
-        {{#each links}}
-        <a href={{{this.link}}}>{{this.text}}</a>
-        {{/each}}
-    </div>
+  <!-- ✅ AGREGADA clase cart-actions -->
+  <div class="cart-actions">
+    <button class="btn-create-cart" onclick="createCart()">🆕 Crear nuevo carrito</button>
+    <button class="btn-view-cart" onclick="goToCart()">👀 Ver carrito</button>
+    <a href="/realTimeProducts" class="btn-add-products">➕ Ir a añadir productos</a>
+    <p id="cart-created-msg" class="cart-msg"></p>
+  </div>
+
+  <!-- ✅ AGREGADA clase products-list -->
+  <ul class="products-list">
+    {{#each products}}
+      <li>
+        <div class="product-card">
+          <a href="/products/{{this._id}}" class="product-link">
+            <h2>{{this.title}}</h2>
+          </a>
+          <p><strong>Descripción:</strong> {{this.description}}</p>
+          <p class="price">Precio: {{this.price}}€</p>
+          <p>Stock: {{this.stock}}</p>
+          <img src="{{this.thumbnail}}" alt="{{this.title}}" />
+          <!-- ✅ AGREGADA clase btn-add-cart -->
+          <button class="btn-add-cart" onclick="addToCart('{{this._id}}')">🛒 Agregar al carrito</button>
+        </div>
+      </li>
+    {{/each}}
+  </ul>
+
+  <!-- ✅ AGREGADA clase pagination -->
+  <div class="pagination">
+    {{#each links}}
+      <a href={{{this.link}}} class="pagination-link">{{this.text}}</a>
+    {{/each}}
+  </div>
 </div>
 
+<script>
+  // Guardamos el ID del carrito en localStorage para persistirlo entre sesiones
+  let cartId = localStorage.getItem("cartId");
 
+  // ✅ Crear nuevo carrito
+  async function createCart() {
+    try {
+      const res = await fetch("/api/carts", { method: "POST" });
+      const data = await res.json();
+
+      if (res.ok) {
+        cartId = data.payload._id;
+        localStorage.setItem("cartId", cartId);
+        document.getElementById("cart-created-msg").innerText =
+          "🛒 Carrito creado con ID: " + cartId;
+      } else {
+        alert("❌ Error al crear el carrito");
+      }
+    } catch (error) {
+      console.error("Error al crear carrito:", error);
+      alert("⚠️ Error al conectar con el servidor");
+    }
+  }
+
+  // ✅ Agregar producto al carrito
+  async function addToCart(productId) {
+    try {
+      if (!cartId) {
+        alert("⚠️ Primero creá un carrito antes de agregar productos");
+        return;
+      }
+
+      const res = await fetch(`/api/carts/${cartId}/product/${productId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ quantity: 1 }),
+      });
+
+      if (res.ok) {
+        alert("✅ Producto agregado al carrito");
+      } else {
+        const err = await res.json();
+        alert("❌ " + err.message);
+      }
+    } catch (error) {
+      console.error("Error al agregar producto:", error);
+      alert("⚠️ Error al conectar con el servidor");
+    }
+  }
+
+  // ✅ Ver carrito (redirige a /carts/:cartId)
+  function goToCart() {
+    if (!cartId) {
+      alert("⚠️ Todavía no hay un carrito creado.");
+      return;
+    }
+    window.location.href = `/carts/${cartId}`;
+  }
+</script>

@@ -1,6 +1,8 @@
-<div class="container">
+<!-- ✅ AGREGADA clase realtime-container -->
+<div class="realtime-container">
     <h1>real time products</h1>
 
+    <!-- ✅ Formulario con estilos mejorados -->
     <div>
         <form id="formProduct" action="http://localhost:8085/api/products" method="post" enctype="multipart/form-data" required>
         <input id="productName" type="text" name="title" placeholder="nombre del producto" required>
@@ -11,25 +13,36 @@
         <button type="submit">Agregar producto</button>
         </form>
     </div>
-    <li id="productsList">
-        {{#each products}}
-            <div data-id ="{{this._id}}">
-                <h2>{{this.title}}</h2>
-                <p>description: {{this.description}}</p>
-                <p>price : {{this.price}}€ </p>
-                <p>stock: {{this.stock}}</p>
-                <img src="{{this.thumbnail}}" alt="{{this.title}}" />
-                <button class="delete-btn">Eliminar</button>
 
-            </div>
+    <!-- ✅ AGREGADA clase realtime-products-list -->
+    <ul id="productsList" class="realtime-products-list">
+        {{#each products}}
+            <li>
+                <div class="realtime-product-card" data-id="{{this._id}}">
+                    <h2>{{this.title}}</h2>
+                    <p><strong>Descripción:</strong> {{this.description}}</p>
+                    <p class="price">Precio: {{this.price}}€</p>
+                    <p>Stock: {{this.stock}}</p>
+                    <img src="{{this.thumbnail}}" alt="{{this.title}}" />
+                    <button class="delete-btn">🗑️ Eliminar</button>
+                </div>
+            </li>
         {{/each}}
-    </li>
-</div>
-    <div>
-        {{#each links}}
-        <a href={{{this.link}}}>{{this.text}}</a>
-        {{/each}}
+    </ul>
+
+    <!-- ✅ AGREGADA clase realtime-navigation -->
+    <div class="realtime-navigation">
+        <a href="/" class="btn-back-home">← Volver a inicio</a>
+        
+        <!-- ✅ AGREGADA clase pagination -->
+        <div class="pagination">
+            {{#each links}}
+                <a href={{{this.link}}} class="pagination-link">{{this.text}}</a>
+            {{/each}}
+        </div>
     </div>
+</div>
+
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
@@ -70,21 +83,15 @@
       }
     });
 
-    // 🔄 Actualizar lista de productos en tiempo real
-    socket.on("updateProducts", (products) => {
-      productsList.innerHTML = "";
-      products.forEach((p) => {
-        productsList.innerHTML += `
-          <div data-id="${p._id}">
-            <h2>${p.title}</h2>
-            <p>Descripción: ${p.description}</p>
-            <p>Precio: ${p.price}€</p>
-            <p>Stock: ${p.stock}</p>
-            <img src="${p.thumbnail}" alt="${p.title}" width="120" />
-            <button class="delete-btn">Eliminar</button>
-          </div>
-        `;
-      });
+    // ✅ Solo recarga la página para mantener la paginación
+    socket.on("productAdded", () => {
+      console.log("Producto agregado, recargando página...");
+      location.reload(); // Recarga para mantener la paginación
+    });
+
+    socket.on("productDeleted", () => {
+      console.log("Producto eliminado, recargando página...");
+      location.reload(); // Recarga para mantener la paginación
     });
   };
 

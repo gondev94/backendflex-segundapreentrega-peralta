@@ -28,14 +28,14 @@ app.set("view engine", "handlebars");
 app.set("views", "./views");
 
 app.use(express.static("public")); //4indicamos la carpeta publica para los archivos estaticos
-//enpoints
 
+//enpoints
 app.use("/", viewsRouter);
 app.use("/api/products", productsRouter);
 app.use("/api/carts", cartRouter);
 
 io.on("connection", async (socket) => {
-  console.log("🟢 Nuevo cliente conectado");
+  console.log("Nuevo cliente conectado");
 
   // Enviar productos actuales al conectarse
   const products = await Product.find().lean();

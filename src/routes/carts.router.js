@@ -14,9 +14,10 @@ cartRouter.post("/", async (req, res) => {
 });
 
 cartRouter.get("/:cid", async(req, res) =>{
+
   try {
     const cid = req.params.cid;
-    const cart = await Cart.findById(cid).populate("products.product");
+    const cart = await Cart.findById(cid).populate("products.product").lean();
     if(!cart) return res.status(500).json({ status: "error", message: "carrito no encontrado"});
 
     res.status(200).json({status: "success", payload: cart.products});
@@ -31,6 +32,8 @@ cartRouter.post("/:cid/product/:pid", async(req, res)=>{
         const { quantity } = req.body;
 
         const updatedCart = await Cart.findByIdAndUpdate(cid, { $push: { products: { product: pid, quantity } } }, {new: true, runValidators: true});
+        if(!updatedCart) return res.status(500).json({ status: "error", message: "carrito no encontrado"});
+
         res.status(200).json({ status: "success", payload: updatedCart });
 
       } catch (error) {
