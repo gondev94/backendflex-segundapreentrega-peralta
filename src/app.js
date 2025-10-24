@@ -37,9 +37,12 @@ app.use("/api/carts", cartRouter);
 io.on("connection", async (socket) => {
   console.log("Nuevo cliente conectado");
 
-  // Enviar productos actuales al conectarse
+  // ✅ CAMBIO 1: COMENTADO - Ya no enviamos todos los productos al conectarse
+  // Esto causaba problemas de paginación
+  /*
   const products = await Product.find().lean();
   socket.emit("updateProducts", products);
+  */
 
   // Escuchar creación de nuevo producto desde el cliente
   socket.on("new product", async (newProduct) => {
@@ -47,10 +50,17 @@ io.on("connection", async (socket) => {
       const product = new Product(newProduct);
       await product.save();
 
+      // ✅ CAMBIO 2: Ya no enviamos todos los productos, solo notificamos
+      /*
       const updatedProducts = await Product.find().lean();
       io.emit("updateProducts", updatedProducts);
+      */
+      
+      // ✅ Solo notificamos que se agregó un producto
+      io.emit("productAdded");
+      console.log("✅ Producto agregado exitosamente");
     } catch (error) {
-      console.error("Error al agregar producto:", error.message);
+      console.error("❌ Error al agregar producto:", error.message);
     }
   });
 
@@ -58,15 +68,23 @@ io.on("connection", async (socket) => {
   socket.on("deleteProduct", async (productId) => {
     try {
       await Product.findByIdAndDelete(productId);
+      
+      // ✅ CAMBIO 3: Ya no enviamos todos los productos, solo notificamos
+      /*
       const updatedProducts = await Product.find().lean();
       io.emit("updateProducts", updatedProducts);
+      */
+      
+      // ✅ Solo notificamos que se eliminó un producto
+      io.emit("productDeleted");
+      console.log("✅ Producto eliminado exitosamente");
     } catch (error) {
-      console.error("Error al eliminar producto:", error.message);
+      console.error("❌ Error al eliminar producto:", error.message);
     }
   });
 });
 
 
 server.listen(PORT, () => {
-  console.log("Servidor escuchando en el puerto 8085");
+  console.log(`🚀 Servidor escuchando en el puerto ${PORT}`);
 });
